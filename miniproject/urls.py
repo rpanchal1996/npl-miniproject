@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^ifconfig/', views.ifconfig),
     url(r'^update/', views.update),
     url(r'^result/', views.result),
-
+    url(r'^ps/', views.ps),
+    url(r'^printhod/', views.printhod),
 ]

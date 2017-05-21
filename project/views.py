@@ -27,47 +27,39 @@ def scan(request):
 	return render(request,'scan.html',{'hosts':hosts})
 
 def ifconfig(request):
-	hosts = Host.objects.all()
-	for host in hosts:
-		if host.accessed == 0:
-			host.command = 'ifconfig'
-			try:
-				client = paramiko.SSHClient()	
-				client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-				client.connect(host.ip, username='student', password='pass@123',allow_agent=False,look_for_keys=False)
-				stdin, stdout, stderr = client.exec_command('ifconfig')
-				stdout = stdout.read()
-				stderr = stderr.read()
-				print stdout
-				print stderr
-				print type(stderr)
-				print type(stdout)
-				if stderr:
-					print('ERROR')
-					host.status = stderr
-					host.save()
-				else:
-					host.status = stdout
-					host.save()
-				client.close()
-			except paramiko.AuthenticationException:
-				host.status = 'Wrong Credentials'
-				host.save()
-			host.accessed = 1;
-			host.save()
-
+	command = 'ifconfig'
+	execute_command(command)
 	return HttpResponseRedirect('/result')
 
 def update(request):
+	command = 'echo \'pass@123\' | sudo -S apt-get update'
+	execute_command(command)
+	return HttpResponseRedirect('/result')
+
+def result(request):
+	hosts = Host.objects.all()
+	return render(request,'result.html',{'hosts':hosts})
+
+def ps(request):
+	command = 'ps aux'
+	execute_command(command)
+	return HttpResponseRedirect('/result')	
+
+def printhod(request):
+	command = 'ls /'
+	execute_command(command)
+	return HttpResponseRedirect('/result')
+
+def execute_command(command):
 	hosts = Host.objects.all()
 	for host in hosts:
 		if host.accessed == 0:
-			host.command = 'echo \'pass@123\' | sudo -S apt-get update'
+			host.command = command
 			try:
 				client = paramiko.SSHClient()	
 				client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 				client.connect(host.ip, username='student', password='pass@123',allow_agent=False,look_for_keys=False)
-				stdin, stdout, stderr = client.exec_command('echo \'pass@123\' | sudo -S apt-get update')
+				stdin, stdout, stderr = client.exec_command(command)
 				stdout = stdout.read()
 				stderr = stderr.read()
 				print stdout
@@ -87,11 +79,7 @@ def update(request):
 				host.save()
 			host.accessed=1
 			host.save()
-	return HttpResponseRedirect('/result')
 
-def result(request):
-	hosts = Host.objects.all()
-	return render(request,'result.html',{'hosts':hosts})
 
 
 
